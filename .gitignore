@@ -1,6 +1,4 @@
 /node_modules
-/imgs/*
-/results/*
+/imgs
 /uploads/*
-/videos/*
 /__pycache__

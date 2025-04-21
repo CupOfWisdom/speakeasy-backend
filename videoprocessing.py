@@ -42,11 +42,11 @@ def extract_frames(video_path, frames_per_second=1, start_second=0, end_second=N
     return frames, fps
 
 # Function to analyze emotions and face confidence in frames
-def analyze_frames(frames):
+def analyze_frames(frames, model='VGG-Face', detector='opencv'):
     results = []
     for frame in frames:
         try:
-            analysis = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
+            analysis = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False, detector_backend=detector)
             # Extract emotion probabilities and face confidence
             emotions = analysis[0]['emotion']
             face_confidence = analysis[0]['face_confidence']
@@ -109,7 +109,7 @@ def main(video_path, output_json_path, frames_per_second=1, start_second=0, end_
     frames, fps = extract_frames(video_path, frames_per_second, start_second, end_second)
 
     # Step 2: Analyze emotions and face confidence in each frame
-    results = analyze_frames(frames)
+    results = analyze_frames(frames, detector='yunet')
 
     # Step 3: Aggregate results by second
     aggregated_results = aggregate_results(results, frames_per_second)
@@ -126,12 +126,13 @@ if __name__ == "__main__":
         print("Usage: python3 videoprocessing.py <video_path> <output_dir>")
         sys.exit(1)
 
-    video_path = sys.argv[1]
-    output_dir = sys.argv[2]
-    uuid = str(uuid4())
-    output_json_path = f"{output_dir}/emotion_analysis_results_{uuid}.json"
-    frames_per_second = 3  # Number of frames to analyze per second
-    start_second = 0  # Start analyzing from this second
-    end_second = 13  # Stop analyzing at this second
+    for i in range(10):
+        video_path = sys.argv[1]
+        output_dir = sys.argv[2]
+        uuid = str(uuid4())
+        output_json_path = f"{output_dir}/emotion_analysis_results_{uuid}.json"
+        frames_per_second = 10  # Number of frames to analyze per second
+        start_second = 10  # Start analyzing from this second
+        end_second = 70 # Stop analyzing at this second
 
-    main(video_path, output_json_path, frames_per_second, start_second, end_second)
+        main(video_path, output_json_path, frames_per_second, start_second, end_second)

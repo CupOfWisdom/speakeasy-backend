@@ -126,13 +126,12 @@ if __name__ == "__main__":
         print("Usage: python3 videoprocessing.py <video_path> <output_dir>")
         sys.exit(1)
 
-    for i in range(10):
-        video_path = sys.argv[1]
-        output_dir = sys.argv[2]
-        uuid = str(uuid4())
-        output_json_path = f"{output_dir}/emotion_analysis_results_{uuid}.json"
-        frames_per_second = 10  # Number of frames to analyze per second
-        start_second = 10  # Start analyzing from this second
-        end_second = 70 # Stop analyzing at this second
+    video_path = sys.argv[1]
+    output_dir = sys.argv[2]
+    uuid = str(uuid4())
+    output_json_path = f"{output_dir}/emotion_analysis_results_{uuid}.json"
+    frames_per_second = 10  # Number of frames to analyze per second
+    start_second = 10  # Start analyzing from this second
+    end_second = 70 # Stop analyzing at this second
 
-        main(video_path, output_json_path, frames_per_second, start_second, end_second)
+    main(video_path, output_json_path, frames_per_second, start_second, end_second)

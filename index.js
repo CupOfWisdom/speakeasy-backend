@@ -4,6 +4,7 @@ const { exec } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors")
+const csv = require('csv-parser');
 
 const app = express();
 const port = 5000;
@@ -81,6 +82,60 @@ app.post("/analyze-video", (req, res) => {
     }
   });
 });
+
+// Helper to get the latest file matching a pattern
+function getLatestFile(dir, pattern) {
+  const files = fs.readdirSync(dir)
+    .filter(file => pattern.test(file))
+    .map(file => ({
+      name: file,
+      time: fs.statSync(path.join(dir, file)).mtime.getTime()
+    }))
+    .sort((a, b) => b.time - a.time);
+
+  return files.length > 0 ? path.join(dir, files[0].name) : null;
+}
+
+// GET /get-dataframe - Return latest dataframe CSV as JSON
+app.get("/get-dataframe", (req, res) => {
+  const outputDir = path.join(__dirname, "results");
+  const latestCsv = getLatestFile(outputDir, /^emotion_analysis_dataframe_.*\.csv$/);
+
+  if (!latestCsv) {
+    return res.status(404).json({ error: "No dataframe found." });
+  }
+
+  const results = [];
+  fs.createReadStream(latestCsv)
+    .pipe(csv())
+    .on("data", (data) => results.push(data))
+    .on("end", () => {
+      res.json(results);
+    })
+    .on("error", (err) => {
+      console.error(err);
+      res.status(500).json({ error: "Failed to read CSV." });
+    });
+});
+
+// GET /get-summary - Return latest summary JSON
+app.get("/get-summary", (req, res) => {
+  const outputDir = path.join(__dirname, "results");
+  const latestSummary = getLatestFile(outputDir, /^emotion_summary_.*\.json$/);
+
+  if (!latestSummary) {
+    return res.status(404).json({ error: "No summary found." });
+  }
+
+  try {
+    const summaryData = JSON.parse(fs.readFileSync(latestSummary, "utf8"));
+    res.json(summaryData);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to read summary JSON." });
+  }
+});
+
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);

@@ -5,6 +5,9 @@ from collections import defaultdict
 import numpy as np
 from uuid import uuid4
 import sys
+from generate_dataframe import generate_dataframe
+from extract_summary import extract_summary
+
 
 # Function to extract frames from video
 def extract_frames(video_path, frames_per_second=1, start_second=0, end_second=None):
@@ -130,8 +133,12 @@ if __name__ == "__main__":
     output_dir = sys.argv[2]
     uuid = str(uuid4())
     output_json_path = f"{output_dir}/emotion_analysis_results_{uuid}.json"
+    output_df_path = f"{output_dir}/emotion_analysis_dataframe_{uuid}.json"
     frames_per_second = 10  # Number of frames to analyze per second
     start_second = 10  # Start analyzing from this second
     end_second = 70 # Stop analyzing at this second
+
+    generate_dataframe(output_json_path, output_df_path)
+    extract_summary(output_json_path, output_df_path)
 
     main(video_path, output_json_path, frames_per_second, start_second, end_second)

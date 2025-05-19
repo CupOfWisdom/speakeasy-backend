@@ -7,6 +7,8 @@ from uuid import uuid4
 import sys
 from generate_dataframe import generate_dataframe
 from extract_summary import extract_summary
+import os
+import time
 
 
 # Function to extract frames from video
@@ -106,6 +108,15 @@ def aggregate_results(results, frames_per_second):
     aggregated = convert_float32_to_float(aggregated)
     return aggregated
 
+def wait_for_file(file_path, timeout=600):
+    start_time = time.time()
+    while not os.path.exists(file_path):
+        if time.time() - start_time > timeout:
+            return False
+        time.sleep(0.1)
+    return True
+
+
 # Main function
 def main(video_path, output_json_path, frames_per_second=1, start_second=0, end_second=None):
     # Step 1: Extract frames from the video
@@ -133,12 +144,16 @@ if __name__ == "__main__":
     output_dir = sys.argv[2]
     uuid = str(uuid4())
     output_json_path = f"{output_dir}/emotion_analysis_results_{uuid}.json"
-    output_df_path = f"{output_dir}/emotion_analysis_dataframe_{uuid}.json"
+    output_df_path = f"{output_dir}/emotion_analysis_dataframe_{uuid}.csv"
     frames_per_second = 10  # Number of frames to analyze per second
-    start_second = 10  # Start analyzing from this second
-    end_second = 70 # Stop analyzing at this second
-
-    generate_dataframe(output_json_path, output_df_path)
-    extract_summary(output_json_path, output_df_path)
-
+    start_second = 0  # Start analyzing from this second
+    end_second = 5 # Stop analyzing at this second
+    
     main(video_path, output_json_path, frames_per_second, start_second, end_second)
+
+    # Wait until the JSON is confirmed written
+    json_available = wait_for_file(output_json_path)
+    
+    if(json_available):
+        generate_dataframe(output_json_path, output_df_path)
+        extract_summary(output_json_path, output_dir)

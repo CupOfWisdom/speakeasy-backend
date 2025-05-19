@@ -54,22 +54,24 @@ app.post("/analyze-video", (req, res) => {
           return res.status(500).json({ error: "Analysis failed" });
         }
 
-        // Find the newest JSON file
-        const jsonFiles = fs.readdirSync(outputDir)
-          .filter(file => file.endsWith('.json'))
+        // Find the latest emotion_analysis_results_*.json file only
+        const analysisFiles = fs.readdirSync(outputDir)
+          .filter(file => file.startsWith('emotion_analysis_results_') && file.endsWith('.json'))
           .map(file => ({
             name: file,
             time: fs.statSync(path.join(outputDir, file)).mtime.getTime()
           }))
           .sort((a, b) => b.time - a.time);
 
-        if (jsonFiles.length === 0) {
-          return res.status(500).json({ error: "No results generated" });
+        if (analysisFiles.length === 0) {
+          return res.status(500).json({ error: "No analysis result found" });
         }
 
-        const resultFile = path.join(outputDir, jsonFiles[0].name);
+        const resultFile = path.join(outputDir, analysisFiles[0].name);
         const resultData = JSON.parse(fs.readFileSync(resultFile, 'utf8'));
 
+        console.log(stdout)
+        
         // Cleanup
         fs.unlinkSync(req.file.path);
         fs.unlinkSync(resultFile);
